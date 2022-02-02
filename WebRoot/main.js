@@ -9,25 +9,35 @@ window.addEventListener('load', (event) => {
     addMessageEvent("select", "change");
 
     numericAllowedOnly();
+    fecthCountriesSelectList();
+
+    disableElementBySelector("#stateSelect");
+    disableElementBySelector("#citySelect");
 });
 
 /**
- * remove all of the options from select list found by selector if keepDefaultOptionFlag param is 
- * set to false, else keep the option with disbaled attribute and removes other options.
+ * remove the options from select list found by selector if keepDefaultOptionFlag param is 
+ * set to false, else keep the option with disabled attribute and removes other options.
  * 
- * @param {String} selector a selector for select list
- * @param {boolean} keepDefaultOptionFlag 
+ * @param {String} selector a CSS selector for select list
+ * @param {boolean} keepDefaultOptionFlag set true to keep options with disbaled attribute, set false to remove all ooptions.
  */
 function removeOptionsFromSelect(selector, keepDefaultOptionFlag){
 
-    var combinedSelector = `${selector} option`; 
+    var targetEle = document.querySelector(selector);
 
-    document.querySelectorAll(combinedSelector).forEach(
+    targetEle.classList.remove(INVALID_FEEDBACK_STYLE_CLASS);
+    targetEle.classList.remove(VALID_FEEDBACK_STYLE_CLASS);
+
+    targetEle.querySelectorAll("option").forEach(
         function (option, idx, list){
             if(keepDefaultOptionFlag){
                 if(option.disabled != true){
                     option.remove();
                     return;
+                }
+                else{
+                    option.selected = true;
                 }
                 return;
             }
@@ -35,4 +45,112 @@ function removeOptionsFromSelect(selector, keepDefaultOptionFlag){
             return;
         }
     );
+}
+
+function prepareCountriesSelectList(Response){
+
+    removeOptionsFromSelect("#countrySelect", true);
+    removeOptionsFromSelect("#countryDailCodeSelect", true);
+
+    disableElementBySelector("#stateSelect");
+    disableElementBySelector("#citySelect");
+
+    var targetEle = document.querySelector("#countrySelect");
+    var dialCodeList = document.querySelector("#countryDailCodeSelect");
+        
+    var countries = Response.data;
+
+    if(countries == undefined){                
+        generateFeedback(targetEle, `An error occured while fetching data. error: ${res.msg}`);
+    }
+    
+    countries.forEach(function(country){        
+        var countryOption = new Option(country.name, country.code);
+        targetEle.add(countryOption);
+
+        var dailCodeOption = new Option(prepareCountryDialCodeText(country.dial_code, country.name), country.dial_code);        
+        dialCodeList.add(dailCodeOption);             
+        
+    });
+    
+    Array.from(dialCodeList.options).forEach(opt => {if(opt.value == "+91") {opt.selected = true; opt.defaultSelected = true;} })
+}
+
+function prepareCountryDialCodeText(dailCode, countryName){
+    return `${dailCode} (${countryName})`;        
+}
+
+function disableElementBySelector(selector){
+    var targetEle = document.querySelector(selector);
+
+    if(targetEle == undefined){
+        return;
+    }
+
+    targetEle.disabled = true;
+}
+function enableElementBySelector(selector){
+    var targetEle = document.querySelector(selector);
+
+    if(targetEle == undefined){
+        return;
+    }
+
+    targetEle.disabled = false;
+}
+
+function prepareStatesSelectList(Response){    
+
+    enableElementBySelector("#stateSelect");
+    disableElementBySelector("#citySelect");
+
+    var targetEle = document.querySelector("#stateSelect");   
+
+    var listData = Response.data.states;
+
+    if(listData == undefined){                
+        generateFeedback(targetEle, `An error occured while fetching data. error: ${res.msg}`);
+    }
+
+    listData.forEach(function(state){        
+        var stateOption = new Option(state.name, state.code);
+        targetEle.add(stateOption);         
+    });
+
+    if(listData.length <= 0){
+        // country does not have any states in it.
+        setDefaultOptionSelected(targetEle);
+        generateNotification(targetEle, `${ Response.data.name} does not have any states in it.`);
+        fetchCitySelectListForCountry();
+    }
+    else{
+        generateNotification(targetEle, Response.msg);
+    }    
+}
+
+function prepareCitiesSelectList(Response){    
+
+    enableElementBySelector("#citySelect");
+
+    var targetEle = document.querySelector("#citySelect");   
+
+    var listData = Response.data;
+
+    if(listData == undefined){                
+        generateFeedback(targetEle, `An error occured while fetching data. error: ${res.msg}`);
+    }
+
+    listData.forEach(function(city){        
+        var cityOption = new Option(city, city);
+        targetEle.add(cityOption);         
+    });
+
+    if(listData.length <= 0){
+        // state or country does not have any city in it.
+        setDefaultOptionSelected(targetEle);
+        generateNotification(targetEle, `${ Response.msg} does not have any city in it.`);
+    }   
+    else{
+        generateNotification(targetEle, Response.msg);
+    }
 }

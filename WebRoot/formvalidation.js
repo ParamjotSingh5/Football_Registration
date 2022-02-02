@@ -54,13 +54,23 @@ function isSanitizedValue(val){
         return false;
     }
 
-    var xssRegex = new RegExp("[<>();{}=]+", "g");
+    var xssRegex = new RegExp("[<>();{}=\\s]+", "g");
 
     if(xssRegex.test(val)){
         return false;
     }
 
     return true;
+}
+
+function isAlphabatesOnly(val){
+    if(val == undefined || val == ""){
+        return false;
+    }
+
+    var re = new RegExp("^([a-zA-Z]{1,})$");
+
+    return re.test(val);
 }
 
 function isNumericKey(val){  
@@ -96,11 +106,25 @@ function isValueCompleteLength(value, completeLength){
     return regex.test(value);
 }
 
+function setDefaultOptionSelected(targetElement){
+    
+    targetElement.querySelectorAll("option").forEach(
+        function (option, idx, list){
+            if(option.value == 0){
+                
+                option.value = -1;
+                option.disabled = false;
+
+            }
+        }
+    );   
+
+}
 
 function toggleEmailControl(evt){
 
    if(evt.srcElement.type == "checkbox"){
-      var toggleELe = document.getElementById("email"); 
+      var toggleELe = document.querySelector("input[name='email']"); 
 
       if(evt.srcElement.checked){
         toggleELe.removeAttribute("disabled");
@@ -166,12 +190,12 @@ function addMessageEvent(selector, eventType){
 
            var submitBtn = document.getElementById("form-submit");
 
-        //    if(validationResponse.status){              
-        //        submitBtn.removeAttribute("disabled");
-        //    }
-        //    else{
-        //     submitBtn.setAttribute("disabled", "disabled");
-        //    }
+           if(validationResponse.status){              
+               submitBtn.removeAttribute("disabled");
+           }
+           else{
+            submitBtn.setAttribute("disabled", "disabled");
+           }
         }, false)
     });
 }
@@ -189,6 +213,17 @@ function validationMessage(evt){
         if(!isSanitizedValue(textValue)){
             currentEle.classList.add(INVALID_FEEDBACK_STYLE_CLASS);            
             generateFeedback(currentEle, VALIDATIONS.santizationFailure);
+            return;
+        }
+
+        if(currentEle.inputMode == "text"){
+
+            if(!isAlphabatesOnly(currentEle.value)){
+                currentEle.classList.add(INVALID_FEEDBACK_STYLE_CLASS);                        
+                generateFeedback(currentEle, VALIDATIONS.alphabatesAllowed);
+                return;
+            }
+            currentEle.classList.remove(INVALID_FEEDBACK_STYLE_CLASS);
             return;
         }
         
@@ -251,6 +286,11 @@ function validationMessage(evt){
     else if(currentEle.type == "radio" || currentEle.type == "checkbox"){
 
         var feildGroupName = currentEle.name;
+        
+        if(feildGroupName == "flexSwitchforemail"){
+            return;
+        }
+
         var isAnyChecked = isAtleastCheckInputChecked(`input[name='${feildGroupName}']`);
         
         if(!isAnyChecked){
@@ -278,13 +318,25 @@ function validationMessage(evt){
     else if(currentEle.type == "select-one"){
 
         var selectedOptionValue = currentEle.value;
+        var selectListName = currentEle.name;
+        var selectedOptionText = currentEle.options[currentEle.selectedIndex].text;
 
-        if(selectedOptionValue == 0){
+        if(selectedOptionValue == 0 || selectedOptionText == "" || selectListName == ""){
             currentEle.classList.add(INVALID_FEEDBACK_STYLE_CLASS);
             return;
-        }
-        
+        }      
+
         currentEle.classList.remove(INVALID_FEEDBACK_STYLE_CLASS);
+
+
+        if(selectListName == "countryselect"){
+            fecthStatesSelectList(selectedOptionText);   
+        }
+        else if(selectListName == "stateselect"){
+            currentEle.classList.remove(INVALID_FEEDBACK_STYLE_CLASS);
+            fetchCitySelectListForStates(selectedOptionText);  
+        }
+
         return;
     }
     
@@ -298,10 +350,26 @@ function generateFeedback(targetElement, feedbackMessage){
         return;
     }
 
-    var feedbackEle =  parent.querySelector(".feedback");
+    var feedbackEle =  parent.querySelector(".feedback.invalid-feedback");
 
     if(feedbackEle){
         targetElement.classList.add(INVALID_FEEDBACK_STYLE_CLASS);
+        feedbackEle.innerText = feedbackMessage;
+    }    
+}
+
+function generateNotification(targetElement, feedbackMessage){      
+
+    var parent = targetElement.closest("div.col-md");
+
+    if(parent == undefined){
+        return;
+    }
+
+    var feedbackEle =  parent.querySelector(".feedback.valid-feedback");
+
+    if(feedbackEle){
+        targetElement.classList.add(VALID_FEEDBACK_STYLE_CLASS);
         feedbackEle.innerText = feedbackMessage;
     }    
 }
@@ -316,7 +384,6 @@ function validateForm(evt){
 
         RespondValdationFailure(validationOBJ.data);
     }   
-
 
 }
 

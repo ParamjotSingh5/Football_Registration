@@ -6,7 +6,8 @@ const VALIDATIONS = {
     invalidEmail: "Please provide a valid email",
     leastCheckInputSelection: "Please select a valid feild.",
     controlledLength: "Please provide a valid value.",
-    selectValidOption: "Please select a valid option."
+    selectValidOption: "Please select a valid option.",
+    alphabatesAllowed: "Only alphabetic characters are allowed."
 };
 
 const feildNames = {

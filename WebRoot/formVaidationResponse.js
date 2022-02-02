@@ -76,6 +76,15 @@ function formFeildsDisperency(){
                     //go to next iteration
                     return;
                 }
+
+                if(currentEle.inputMode == "text"){
+
+                    if(!isAlphabatesOnly(currentEle.value)){                        
+                        validationRes.status = false;
+                        validationRes.addInvalidFeild(new ValidationData(currentEle.name, false, VALIDATIONS.alphabatesAllowed));
+                        return;
+                    } 
+                }
         
                 if(!isSanitizedValue(textValue)){
                     validationRes.status = false;
