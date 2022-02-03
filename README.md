@@ -1,4 +1,4 @@
-# Football Registration ⚽
+# Football Registration
 
 ![GitHub top language](https://img.shields.io/github/languages/top/ParamjotSingh5/Football_Registration)
 ![Form](https://img.shields.io/badge/Form📝-brightgreen)
