@@ -113,7 +113,7 @@ function prepareStatesSelectList(Response){
     }
 
     listData.forEach(function(state){        
-        var stateOption = new Option(state.name, state.code);
+        var stateOption = new Option(state.name, state.state_code);
         targetEle.add(stateOption);         
     });
 
