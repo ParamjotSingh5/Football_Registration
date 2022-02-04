@@ -6,7 +6,7 @@
 
 ![alt text](https://github.com/ParamjotSingh5/Football_Registration/blob/footballRegistration/Football_Registration_banner.png?raw=true)
 
-Register yourself for an opportunity to play from your dream team. 
+Register yourself for an opportunity to play from your dream team.
 
 ## Set up  
 
@@ -31,7 +31,7 @@ $ WebRoot\registration.html
 
 ### 🚀 Page Load
 
-* We are 🔗 binding the `focusout`, `change` and `keypress` events to the `input`, [`checkbox`, `radio`, `select`] and `input[inputmode="numeric"]` form fields respectively.
+* We are 🔗 binding the `focusout`, `click`, `change` and `keypress` events to the `input`, [`checkbox`, `radio`], `select` and `input[inputmode="numeric"]` form fields respectively.
 * Fetching the countries and their corrosponding dail codes, add that data into the select lists.
 
 ### 📤 focusout from input
@@ -50,10 +50,10 @@ $ WebRoot\registration.html
 * Special case: checks whether if its name is `countryselect`, if ✔️ `true`, calls a method `fecthStatesSelectList(selectedOptionText)` to bind data with state list, and kind of same procedure is followed when state list is changed for city select list.
 * ⚠️ Super special case: While working with form, we may encounter a stage, where a country does not have states in it 😕 (try **Anguilla**). In that situation, we by-pass state select list selection, and directly calls `fetchCitySelectListForStates(selectedOptionText)` to bind data to city sleect list 🧐.
 
-### change on checkbox/ radio
+### 📌 click on checkbox/ radio
 
-## How to Use
+* To make sure that at least one of checkbox/ radio is checked from a group, we make call to `isAtleastCheckInputChecked(selector)` method. On the basis of the returned bit, we add a class to on each element of the group.
 
 ## 👽 Integrated Resource
 
-* We are dependent on <a href="https://countriesnow.space/">Countries now</a> API for data provided.
+* We are dependent on [Countries now](https://countriesnow.space/) API for data provided.
