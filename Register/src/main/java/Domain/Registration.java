@@ -16,6 +16,21 @@ public class Registration {
     public User user = new User();
     public UserRegister userRegister = new UserRegister();
 
+    public FormRegisterRequestDTO getRegistrationData(){
+
+        FormRegisterRequestDTO RequestDTO = new FormRegisterRequestDTO();
+
+        RequestDTO.username = this.user.UserName; RequestDTO.firstname = this.user.FirstName;
+        RequestDTO.lastname = this.user.LastName; RequestDTO.email = this.user.Email;
+        RequestDTO.address = this.user.Address; RequestDTO.pincode = this.user.PinCode;
+        RequestDTO.phonenumber = this.user.Phone; RequestDTO.countrydailcodeselect = this.user.DailCode;
+        RequestDTO.desiredteamradios = this.userRegister.TeamId; RequestDTO.desiredpositionchecks = this.userRegister.getFormattedPositionId();
+        RequestDTO.agegroup = this.userRegister.AgeGroupId; RequestDTO.countryselect = this.user.CountryCode;
+        RequestDTO.stateselect = this.user.StateCode; RequestDTO.cityselect = this.user.CityName;
+
+        return RequestDTO;
+    }
+
     public GenericResponse setRegistrationData(FormRegisterRequestDTO requestDTO){
 
         //here we are considering that requestDTO is a valid object.
@@ -33,7 +48,8 @@ public class Registration {
             System.out.println(ex.getStackTrace());
 
             return new GenericResponse(false, false, ex.getMessage());
-        }   }
+        }
+    }
 
     public GenericResponse RegisterNewUser(User user, UserRegister register){
 

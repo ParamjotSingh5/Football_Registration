@@ -1,5 +1,6 @@
 package Domain;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -43,6 +44,23 @@ public class UserRegister {
 
     public String getPositionId() {
         return PositionId;
+    }
+
+    public int[] getFormattedPositionId() {
+
+        String[] items = this.PositionId.replaceAll("\\[", "").replaceAll("\\]", "").replaceAll("\\s", "").split(",");
+
+        int[] results = new int[items.length];
+
+        for (int i = 0; i < items.length; i++) {
+            try {
+                results[i] = Integer.parseInt(items[i]);
+            } catch (NumberFormatException nfe) {
+                //NOTE: write something here if you need to recover from formatting errors
+            };
+        }
+
+        return results;
     }
 
     public UserRegister setPositionId(String positionId) {

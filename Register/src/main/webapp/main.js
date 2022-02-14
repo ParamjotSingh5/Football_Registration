@@ -11,9 +11,18 @@ window.addEventListener('load', (event) => {
     numericAllowedOnly();
     fecthCountriesSelectList();
 
+    bindCheckingKeyPressUserName();
+
     disableElementBySelector("#stateSelect");
     disableElementBySelector("#citySelect");
 });
+
+function bindCheckingKeyPressUserName(){
+    var userNameEle = document.querySelector("#userName");
+
+    userNameEle.addEventListener("keyup", checkIfUserNameExists);
+    userNameEle.addEventListener("change", checkIfUserNameExists);
+}
 
 /**
  * remove the options from select list found by selector if keepDefaultOptionFlag param is 

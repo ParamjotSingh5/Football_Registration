@@ -16,11 +16,11 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @WebServlet(
-        name = "User",
-        urlPatterns = {"/user"}
+        name = "UserNameQuery",
+        urlPatterns = {"/username-taken"}
 )
 
-public class UserServlet extends HttpServlet {
+public class UserNameQueryServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -40,10 +40,10 @@ public class UserServlet extends HttpServlet {
             resp.setStatus(HttpStatus.SC_BAD_REQUEST);
 
             out.write(gson.toJson(new GenericResponse()
-                    .setMessage(ValidationMessages.INVALID_REQUEST.toString())
-                    .setStatus(false)
-                    .setSuccess(false)
-            ).getBytes());
+                            .setMessage(ValidationMessages.INVALID_REQUEST.toString())
+                            .setStatus(false)
+                            .setSuccess(false)
+                    ).getBytes());
             out.flush();
             out.close();
 
@@ -51,7 +51,7 @@ public class UserServlet extends HttpServlet {
         }
 
         User existingUser = new User();
-        GenericResponse genericResponse = existingUser.getUserRegistrationDataByUsername(reqUserName);
+        GenericResponse genericResponse = existingUser.isUserNameAlreadyExists(reqUserName);
 
         if(!genericResponse.status){
 
@@ -83,8 +83,6 @@ public class UserServlet extends HttpServlet {
 
             return;
         }
-
-
 
         out.write(gson.toJson(genericResponse).getBytes());
         out.flush();

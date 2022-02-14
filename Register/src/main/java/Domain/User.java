@@ -33,6 +33,92 @@ public class User {
     public int CityId;
     public String CityName;
 
+    public GenericResponse getUserRegistrationDataByUsername(String username){
+        if(username.trim().isEmpty()){
+            return new GenericResponse(false, false, ValidationMessages.VALUE_REQUIRED.toString());
+        }
+
+        Database db = new Database();
+        Connection con = null;
+
+        try{
+            con = db.connect();
+        }
+        catch (Exception ex){
+            System.out.println(ValidationMessages.DB_CONNECTION_ERROR.toString() + " error: " + ex.getMessage());
+            return new GenericResponse(false, false, ValidationMessages.DB_CONNECTION_ERROR.toString());
+        }
+
+        String query = "SELECT u.ID, u.FIRST_NAME, u.LAST_NAME, u.[ADDRESS], u.DAIL_CODE, u.EMAIL, u.PHONE, u.PINCODE,\n" +
+                "\t ur.AGEGROUPID, ur.TEAMID, ur.POSITIONID, cou.CODE as CountryCode , \n" +
+                "\t sta.CODE as StateCode, ci.NAME as CityName FROM [USER] as u\n" +
+                "INNER JOIN USER_REGISTRATION as ur on u.ID = ur.USERID\n" +
+                "INNER JOIN COUNTRY as cou on u.COUNTRYID = cou.ID\n" +
+                "INNER JOIN STATE as sta on u.STATEID = sta.ID\n" +
+                "INNER JOIN CITY as ci on u.CITYID = ci.ID \n" +
+                "WHERE u.USERNAME = ? \n";
+        ResultSet userRes = null;
+
+        GenericResponse parentRes = new GenericResponse();
+        Registration registrationData = new Registration();
+
+        try{
+            PreparedStatement checkUserNameStmt  = con.prepareStatement(query);
+            checkUserNameStmt.setString(1, username);
+            userRes = checkUserNameStmt.executeQuery();
+
+            while (userRes.next()) {
+                registrationData.user.ID = userRes.getInt("ID");
+                registrationData.user.FirstName = userRes.getString("FIRST_NAME");
+                registrationData.user.LastName = userRes.getString("LAST_NAME");
+                registrationData.user.Address = userRes.getString("ADDRESS");
+                registrationData.user.DailCode = userRes.getString("DAIL_CODE");
+                registrationData.user.Email = userRes.getString("EMAIL");
+                registrationData.user.Phone = userRes.getString("PHONE");
+                registrationData.user.PinCode = userRes.getString("PINCODE");
+                registrationData.user.CountryCode = userRes.getString("CountryCode");
+                registrationData.user.StateCode = userRes.getString("StateCode");
+                registrationData.user.CityName = userRes.getString("CityName");
+
+                registrationData.userRegister.AgeGroupId = userRes.getInt("AGEGROUPID");
+                registrationData.userRegister.TeamId = userRes.getInt("TEAMID");
+                registrationData.userRegister.PositionId = userRes.getString("POSITIONID");
+            }
+
+            parentRes.status =true;
+            //User exists
+            if(registrationData.user.ID > 0){
+                parentRes.success = true;
+                parentRes.message = ValidationMessages.USERNAME_EXISTS.toString();
+                parentRes.data = registrationData.getRegistrationData();
+            }
+            else {
+                parentRes.success = false;
+            }
+        }
+        catch (SQLException ex){
+
+            System.out.println(ValidationMessages.INTERNAL_SERVER_ERROR.toString() + " error: " + ex.getMessage());
+
+            parentRes.status = false;
+            parentRes.success = false;
+            parentRes.message = ValidationMessages.INTERNAL_SERVER_ERROR.toString();
+        }
+        catch (Exception ex){
+            System.out.println(ValidationMessages.INTERNAL_SERVER_ERROR.toString() + " error: " + ex.getMessage());
+
+            parentRes.status = false;
+            parentRes.success = false;
+            parentRes.message = ValidationMessages.INTERNAL_SERVER_ERROR.toString();
+        }
+        finally {
+            try { userRes.close(); } catch (Exception e) { /* Ignored */ }
+            try { con.close(); } catch (Exception e) { /* Ignored */ }
+        }
+
+        return parentRes;
+    }
+
     public GenericResponse isUserNameAlreadyExists(String username)
     {
         if(username.trim().isEmpty()){

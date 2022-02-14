@@ -206,3 +206,81 @@ function fetchCitySelectListForCountry(){
         generateFeedback(targetEle, `An error occured while fecthing cities data. error: ${error}`);
     });
 }
+
+
+function fetchUserDataByUserName(){
+    var userNameEle = document.querySelector("#userName");
+
+    var providedUserName = userNameEle.value;  
+
+    userNameEle.classList.remove(INVALID_FEEDBACK_STYLE_CLASS);
+
+    var requestOptions = {
+        method: 'GET'
+    };
+
+    fetch(`/user?username=${providedUserName}`, requestOptions)
+    .then(response => response.json())
+    .then((result) => {
+        setUserData(result.data);                      
+        generateNotification(userNameEle, "Data fetched succesfully.");
+    })
+    .catch((error) =>
+    {                      
+        generateFeedback(userNameEle, VALIDATIONS.internalServError);
+        console.log('error', error)
+    });
+
+}
+
+function setUserData(userDataJSON){
+    
+    for (var key in userDataJSON){
+        var value = userDataJSON[key];
+        
+        var elementList = document.getElementsByName(key);     
+        
+        for (let curElement of elementList) {
+
+            if(curElement.type == "text" || curElement.type == "email" || curElement.type == "textarea" ){
+                curElement.value = value;
+            }
+
+            else if(curElement.type == "select-one"){
+
+                curElement.value = value;
+
+                var selectListName = curElement.name;
+                var selectedOptionText = curElement.options[curElement.selectedIndex].text;
+
+                if(selectListName == "countryselect"){
+                    fecthStatesSelectList(selectedOptionText);   
+                }
+                else if(selectListName == "stateselect"){
+                    curElement.classList.remove(INVALID_FEEDBACK_STYLE_CLASS);
+                    fetchCitySelectListForStates(selectedOptionText);  
+                }
+            }
+
+            else if(curElement.type == "radio"){               
+                if(curElement.value == value){
+                    curElement.checked = true;
+                }      
+                else{
+                    curElement.checked = false;
+                }       
+            }
+
+            else if(curElement.type == "checkbox"){                
+                if(value.constructor == [].constructor){
+                    if(value.includes(parseInt(curElement.value))){
+                        curElement.checked = true;
+                    }
+                    else{
+                        curElement.checked = false;
+                    }  
+                }                    
+            }
+        }
+    }
+}

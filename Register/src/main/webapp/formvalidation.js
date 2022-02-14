@@ -149,7 +149,6 @@ function numericAllowedOnly(){
         }     
 
         if(!isNumericKey(key)){
-            currentEle.classList.add(INVALID_FEEDBACK_STYLE_CLASS);
             generateFeedback(currentEle, VALIDATIONS.numericAllowed);
             event.preventDefault();
             return;
@@ -157,16 +156,13 @@ function numericAllowedOnly(){
 
         var currentVal = currentEle.value + key
 
-        if(currentEle.name == "phonenumber" && !isValueLengthOver(currentVal, PHONE_NUMBER_LENGTH)){            
-            // currentEle.classList.add(INVALID_FEEDBACK_STYLE_CLASS);
             // generateFeedback(currentEle, VALIDATIONS.maxLength);
+        if(currentEle.name == "phonenumber" && !isValueLengthOver(currentVal, PHONE_NUMBER_LENGTH)){     
             event.preventDefault();
             return;
         }
 
-        if(currentEle.name == "pincode" && !isValueLengthOver(currentVal, PINCODE_LENGTH)){      
-            // currentEle.classList.add(INVALID_FEEDBACK_STYLE_CLASS);
-            // generateFeedback(currentEle, VALIDATIONS.maxLength);      
+        if(currentEle.name == "pincode" && !isValueLengthOver(currentVal, PINCODE_LENGTH)){     
             event.preventDefault();
             return;
         }
@@ -196,6 +192,10 @@ function addMessageEvent(selector, eventType){
            else{
             submitBtn.setAttribute("disabled", "disabled");
            }
+
+           submitBtn.classList.remove(INVALID_FEEDBACK_STYLE_CLASS);
+           submitBtn.classList.remove(VALID_FEEDBACK_STYLE_CLASS);
+
         }, false)
     });
 }
@@ -210,16 +210,14 @@ function validationMessage(evt){
             return;
         }
 
-        if(!isSanitizedValue(textValue)){
-            currentEle.classList.add(INVALID_FEEDBACK_STYLE_CLASS);            
+        if(!isSanitizedValue(textValue)){          
             generateFeedback(currentEle, VALIDATIONS.santizationFailure);
             return;
         }
 
         if(currentEle.inputMode == "text"){
 
-            if(!isAlphabatesOnly(currentEle.value)){
-                currentEle.classList.add(INVALID_FEEDBACK_STYLE_CLASS);                        
+            if(!isAlphabatesOnly(currentEle.value)){                       
                 generateFeedback(currentEle, VALIDATIONS.alphabatesAllowed);
                 return;
             }
@@ -233,14 +231,12 @@ function validationMessage(evt){
         }        
 
         //below is validations for numeric text             
-        if(currentEle.name == "phonenumber" && !isValueCompleteLength(currentEle.value, PHONE_NUMBER_LENGTH)){            
-            currentEle.classList.add(INVALID_FEEDBACK_STYLE_CLASS);
+        if(currentEle.name == "phonenumber" && !isValueCompleteLength(currentEle.value, PHONE_NUMBER_LENGTH)){
             generateFeedback(currentEle, VALIDATIONS.controlledLength);
             evt.preventDefault();
             return;
         }
-        else if(currentEle.name == "pincode" && !isValueCompleteLength(currentEle.value, PINCODE_LENGTH)){      
-            currentEle.classList.add(INVALID_FEEDBACK_STYLE_CLASS);
+        else if(currentEle.name == "pincode" && !isValueCompleteLength(currentEle.value, PINCODE_LENGTH)){
             generateFeedback(currentEle, VALIDATIONS.controlledLength);      
             evt.preventDefault();
             return;
@@ -253,8 +249,7 @@ function validationMessage(evt){
     else if(currentEle.type == "textarea"){
         var textValue = currentEle.value;
 
-        if(!isSanitizedValue(textValue)){
-            currentEle.classList.add(INVALID_FEEDBACK_STYLE_CLASS);                        
+        if(!isSanitizedValue(textValue)){                       
             generateFeedback(currentEle, VALIDATIONS.santizationFailure);
             return;
         }
@@ -266,14 +261,12 @@ function validationMessage(evt){
     else if(currentEle.type == "email"){
         var textValue = currentEle.value;
 
-        if(!isSanitizedValue(textValue)){
-            currentEle.classList.add(INVALID_FEEDBACK_STYLE_CLASS);                        
+        if(!isSanitizedValue(textValue)){                      
             generateFeedback(currentEle, VALIDATIONS.santizationFailure);
             return;
         }
 
-        if(!isValidEmail(textValue)){
-            currentEle.classList.add(INVALID_FEEDBACK_STYLE_CLASS);                        
+        if(!isValidEmail(textValue)){                        
             generateFeedback(currentEle, VALIDATIONS.invalidEmail);
             return;
         }
@@ -449,6 +442,13 @@ function handlePostFormDataResponse(res){
         RespondValdationFailure(res.data);
     }
 
+    //user created !!!
+    
+    var submitBtn = document.querySelector("#form-submit");      
+    submitBtn.setAttribute("disabled", "disabled");   
+    generateNotification(submitBtn, "User registered succefully !!!.");
+    
+    ResetForm();
 }
 
 function RespondValdationFailure(failedValidations){
@@ -472,4 +472,81 @@ function RespondValdationFailure(failedValidations){
 
         return;
     });
+}
+
+
+function ResetForm(){
+
+    var stateSelectList = document.querySelector("#stateSelect");
+    stateSelectList.classList.remove(INVALID_FEEDBACK_STYLE_CLASS);
+    stateSelectList.classList.remove(VALID_FEEDBACK_STYLE_CLASS);
+
+    var citySelectList = document.querySelector("#citySelect");
+    citySelectList.classList.remove(INVALID_FEEDBACK_STYLE_CLASS);
+    citySelectList.classList.remove(VALID_FEEDBACK_STYLE_CLASS);
+
+    document.getElementById("registration-form").reset();
+}
+
+function checkIfUserNameExists(event){
+    var userNameEle = event.srcElement;
+
+    var providedUserName = userNameEle.value;    
+
+    disableFetchUserDataBtn();
+    userNameEle.classList.remove(INVALID_FEEDBACK_STYLE_CLASS);
+    userNameEle.classList.remove(VALID_FEEDBACK_STYLE_CLASS);
+
+    if(providedUserName == ''){        
+        return;
+    }
+
+    if(!isSanitizedValue(providedUserName)){
+        return;
+    }
+
+    if(!isAlphabatesOnly(providedUserName)){
+        return;
+    }
+
+    var requestOptions = {
+        method: 'GET'
+    };
+      
+    fetch(`/username-taken?username=${providedUserName}`, requestOptions)
+    .then(response => response.json())
+    .then((result) => {
+        handleCheckUsernameResponse(result);
+    })
+    .catch(error => console.log('error', error));
+
+}
+
+function handleCheckUsernameResponse(res){
+
+    var userNameEle = document.querySelector("#userName");
+
+    if(!res.status){
+        console.log(`An error occured while fetching username data. error: ${res.message}`)
+        return;
+    }
+    if(!res.success){        
+        return;
+    }
+
+    generateNotification(userNameEle, VALIDATIONS.usernameAlreadyExists);
+    enableFetchUserDataBtn();
+    return;
+}
+
+function disableFetchUserDataBtn(){
+    var fetchUserDataBtn = document.querySelector("#retriveUserDataBtn");
+
+    fetchUserDataBtn.disabled = true;
+}
+
+function enableFetchUserDataBtn(){
+    var fetchUserDataBtn = document.querySelector("#retriveUserDataBtn");
+
+    fetchUserDataBtn.disabled = false;
 }
