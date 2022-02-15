@@ -2,7 +2,7 @@ package Utilities;
 
 public enum ValidationMessages {
 
-
+    PARAMETER_REQUIRED ("Field required."),
     VALUE_REQUIRED ("Value required for field."),
     CORRUPTED_VALUE ("Please provide a valid value."),
     ONLY_ALPHABET ("Only alphabetic characters are allowed."),
@@ -14,7 +14,9 @@ public enum ValidationMessages {
     INTERNAL_SERVER_ERROR("An unhandled error occurred while processing your request."),
     DB_CONNECTION_ERROR("An error occurred while connecting to database."),
     CANNOT_CREATE_NEW_USER("An error occurred while registering a new user."),
-    USERNAME_EXISTS("username already exists.");
+    USERNAME_EXISTS("username already exists."),
+    INVALID_USERNAME("Invalid Username."),
+    USER_DATA_UPDATED("User data updated successfully");
 
 
     private final String message;

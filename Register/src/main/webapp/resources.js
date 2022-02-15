@@ -215,6 +215,10 @@ function fetchUserDataByUserName(){
 
     userNameEle.classList.remove(INVALID_FEEDBACK_STYLE_CLASS);
 
+    ResetAllFeildValueChangedStatus();
+    
+    userNameEle.classList.add(VALUE_CHANGED_CLASS);
+
     var requestOptions = {
         method: 'GET'
     };
@@ -224,6 +228,7 @@ function fetchUserDataByUserName(){
     .then((result) => {
         setUserData(result.data);                      
         generateNotification(userNameEle, "Data fetched succesfully.");
+        markSubmitButtonForOpreation(SUBMIT_METHOD_TYPE_PATCH);
     })
     .catch((error) =>
     {                      
@@ -241,6 +246,9 @@ function setUserData(userDataJSON){
         var elementList = document.getElementsByName(key);     
         
         for (let curElement of elementList) {
+
+            // curElement.style.webkitAnimationName = '';
+            // curElement.classList.add("alerts-border");
 
             if(curElement.type == "text" || curElement.type == "email" || curElement.type == "textarea" ){
                 curElement.value = value;
@@ -283,4 +291,13 @@ function setUserData(userDataJSON){
             }
         }
     }
+}
+
+
+function ResetAllFeildValueChangedStatus(){
+    var elements = document.getElementsByClassName(VALUE_CHANGED_CLASS);
+
+    for (const c of elements) {
+        c.classList.remove(VALUE_CHANGED_CLASS);    
+    }      
 }

@@ -1,9 +1,9 @@
 
 window.addEventListener('load', (event) => {
     
-    addMessageEvent('input[id="email"]', "focusout");    
-    addMessageEvent('input[type="text"]', "focusout");   
-    addMessageEvent('textarea[id="address"]', "focusout");
+    addMessageEvent('input[id="email"]', "change");    
+    addMessageEvent('input[type="text"]', "change");   
+    addMessageEvent('textarea[id="address"]', "change");
     addMessageEvent('input[type="radio"]', "change");
     addMessageEvent('input[type="checkbox"]', "change");
     addMessageEvent("select", "change");
@@ -21,7 +21,6 @@ function bindCheckingKeyPressUserName(){
     var userNameEle = document.querySelector("#userName");
 
     userNameEle.addEventListener("keyup", checkIfUserNameExists);
-    userNameEle.addEventListener("change", checkIfUserNameExists);
 }
 
 /**
@@ -162,4 +161,10 @@ function prepareCitiesSelectList(Response){
     else{
         generateNotification(targetEle, `cities fetched for ${Response.name}`);
     }
+}
+
+function markSubmitButtonForOpreation(MethodType){
+    var submitBtn = document.getElementById("form-submit");
+
+    submitBtn.setAttribute("data-submit-type", MethodType);
 }

@@ -1,10 +1,17 @@
 package DTO;
 
 import Domain.User;
+import Utilities.CustomDefaultsValues;
 import Utilities.GenericResponse;
 import Utilities.ValidationMessages;
 import Utilities.Validations;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class FormRegisterRequestDTO {
     public String username;
     public String firstname;
@@ -21,6 +28,7 @@ public class FormRegisterRequestDTO {
     public String stateselect;
     public String cityselect;
 
+
     public FormRegisterResponseDTO ValidateFormData(){
 
         FormRegisterResponseDTO parentDTO = new FormRegisterResponseDTO();
@@ -28,6 +36,28 @@ public class FormRegisterRequestDTO {
         parentDTO.status = true; parentDTO.success = true;
 
         GenerateReport(parentDTO);
+
+        return parentDTO;
+    }
+
+    public String desiredPositionChecksToString(){
+        return IntStream.of(this.desiredpositionchecks)
+                .mapToObj(Integer::toString)
+                .collect(Collectors.joining(", "));
+    }
+
+    public FormRegisterResponseDTO ValidatePatchFormData(){
+
+        FormRegisterResponseDTO parentDTO = new FormRegisterResponseDTO();
+
+        parentDTO.status = true; parentDTO.success = true;
+
+        boolean isUpdateRequired = GenerateReportForPatch(parentDTO);
+
+        if(!isUpdateRequired){
+            parentDTO.success = false;
+            parentDTO.message = "Invalid request: please mention a valid change.";
+        }
 
         return parentDTO;
     }
@@ -71,7 +101,84 @@ public class FormRegisterRequestDTO {
         AnalyzeReport(validateCity(), parentDTO);
     }
 
+    private boolean GenerateReportForPatch(FormRegisterResponseDTO parentDTO){
+
+        boolean isUpdateNeeded = false;
+
+        AnalyzeReport(validateUserName(), parentDTO);
+
+        if(this.firstname != null){
+            isUpdateNeeded = true;
+            AnalyzeReport(validateFirstName(), parentDTO);
+        }
+
+        if(this.lastname != null){
+            isUpdateNeeded = true;
+            AnalyzeReport(validateLastName(), parentDTO);
+        }
+
+        if(this.countrydailcodeselect != null){
+            isUpdateNeeded = true;
+            AnalyzeReport(validateCountryDialCode(), parentDTO);
+        }
+
+        if(this.phonenumber != null){
+            isUpdateNeeded = true;
+            AnalyzeReport(validatePhoneNumber(), parentDTO);
+        }
+
+        if(this.email != null){
+            isUpdateNeeded = true;
+            AnalyzeReport(validateEmail(), parentDTO);
+        }
+
+        if(this.agegroup != 0){
+            isUpdateNeeded = true;
+            AnalyzeReport(validateAgeGroup(), parentDTO);
+        }
+
+        if(this.desiredteamradios != 0){
+            isUpdateNeeded = true;
+            AnalyzeReport(validateDesiredTeam(), parentDTO);
+        }
+
+        if(this.desiredpositionchecks != null){
+            isUpdateNeeded = true;
+            AnalyzeReport(validateDesiredPositions(), parentDTO);
+        }
+
+        if(this.address != null){
+            isUpdateNeeded = true;
+            AnalyzeReport(validateAddress(), parentDTO);
+        }
+
+        if(this.pincode != null){
+            isUpdateNeeded = true;
+            AnalyzeReport(validatePinCode(), parentDTO);
+        }
+
+        if(this.countryselect != null){
+            isUpdateNeeded = true;
+            AnalyzeReport(validateCountry(), parentDTO);
+        }
+
+        if(this.stateselect != null){
+            isUpdateNeeded = true;
+            AnalyzeReport(validateState(), parentDTO);
+        }
+
+        if(this.cityselect != null){
+            isUpdateNeeded = true;
+            AnalyzeReport(validateCity(), parentDTO);
+        }
+        return isUpdateNeeded;
+    }
+
     private ValidationReport validateUserName(){
+
+        if(this.username == null){
+            return new ValidationReport("username", false, ValidationMessages.PARAMETER_REQUIRED.toString());
+        }
 
         this.username = this.username.trim();
 
@@ -89,16 +196,14 @@ public class FormRegisterRequestDTO {
             return new ValidationReport("username", false, ValidationMessages.ONLY_ALPHABET.toString());
         }
 
-        GenericResponse res = new User().isUserNameAlreadyExists(this.username);
-
-        if(res.status && res.success){
-            return new ValidationReport("username", false, ValidationMessages.USERNAME_EXISTS.toString());
-        }
-
         return new ValidationReport("username", true, ValidationMessages.VALID.toString());
     }
 
     private ValidationReport validateFirstName(){
+
+        if(this.firstname == null){
+            return new ValidationReport("firstname", false, ValidationMessages.PARAMETER_REQUIRED.toString());
+        }
 
         this.firstname = this.firstname.trim();
 
@@ -121,6 +226,10 @@ public class FormRegisterRequestDTO {
 
     private ValidationReport validateLastName(){
 
+        if(this.lastname == null){
+            return new ValidationReport("lastname", false, ValidationMessages.PARAMETER_REQUIRED.toString());
+        }
+
         this.lastname = this.lastname.trim();
 
         Validations validations = new Validations();
@@ -142,6 +251,10 @@ public class FormRegisterRequestDTO {
 
     private ValidationReport validateCountryDialCode(){
 
+        if(this.countrydailcodeselect == null){
+            return new ValidationReport("countrydailcodeselect", false, ValidationMessages.PARAMETER_REQUIRED.toString());
+        }
+
         this.countrydailcodeselect = this.countrydailcodeselect.trim();
 
         Validations validations = new Validations();
@@ -158,6 +271,10 @@ public class FormRegisterRequestDTO {
     }
 
     private ValidationReport validatePhoneNumber(){
+
+        if(this.phonenumber == null){
+            return new ValidationReport("phonenumber", false, ValidationMessages.PARAMETER_REQUIRED.toString());
+        }
 
         this.phonenumber = this.phonenumber.trim();
 
@@ -183,6 +300,10 @@ public class FormRegisterRequestDTO {
     }
 
     private ValidationReport validateEmail(){
+
+        if(this.email == null){
+            return new ValidationReport("email", false, ValidationMessages.PARAMETER_REQUIRED.toString());
+        }
 
         this.email = this.email.trim();
 
@@ -229,6 +350,11 @@ public class FormRegisterRequestDTO {
     }
 
     private ValidationReport validateDesiredPositions(){
+
+        if(this.desiredpositionchecks == null){
+            return new ValidationReport("desiredpositionchecks", false, ValidationMessages.PARAMETER_REQUIRED.toString());
+        }
+
         Validations validations = new Validations();
 
         if(this.desiredpositionchecks.length == 0){
@@ -242,6 +368,10 @@ public class FormRegisterRequestDTO {
 
     private ValidationReport validateAddress(){
 
+        if(this.address == null){
+            return new ValidationReport("address", false, ValidationMessages.PARAMETER_REQUIRED.toString());
+        }
+
         this.address = this.address.trim();
 
         Validations validations = new Validations();
@@ -254,6 +384,10 @@ public class FormRegisterRequestDTO {
     }
 
     private ValidationReport validatePinCode(){
+
+        if(this.pincode == null){
+            return new ValidationReport("pincode", false, ValidationMessages.PARAMETER_REQUIRED.toString());
+        }
 
         this.pincode = this.pincode.trim();
 
@@ -276,6 +410,10 @@ public class FormRegisterRequestDTO {
 
     private ValidationReport validateCountry(){
 
+        if(this.countryselect == null){
+            return new ValidationReport("countryselect", false, ValidationMessages.PARAMETER_REQUIRED.toString());
+        }
+
         this.countryselect = this.countryselect.trim();
 
         Validations validations = new Validations();
@@ -294,6 +432,10 @@ public class FormRegisterRequestDTO {
     }
 
     private ValidationReport validateState(){
+
+        if(this.stateselect == null){
+            return new ValidationReport("stateselect", false, ValidationMessages.PARAMETER_REQUIRED.toString());
+        }
 
         this.stateselect = this.stateselect.trim();
 
@@ -314,6 +456,10 @@ public class FormRegisterRequestDTO {
 
     private ValidationReport validateCity(){
 
+        if(this.cityselect == null){
+            return new ValidationReport("cityselect", false, ValidationMessages.PARAMETER_REQUIRED.toString());
+        }
+
         this.cityselect = this.cityselect.trim();
 
         Validations validations = new Validations();
@@ -331,4 +477,23 @@ public class FormRegisterRequestDTO {
         return new ValidationReport("cityselect", true, ValidationMessages.VALID.toString());
     }
 
+    @Override
+    public String toString() {
+        return "FormRegisterRequestDTO{" +
+                "username='" + username + '\'' +
+                ", firstname='" + firstname + '\'' +
+                ", lastname='" + lastname + '\'' +
+                ", countrydailcodeselect='" + countrydailcodeselect + '\'' +
+                ", phonenumber='" + phonenumber + '\'' +
+                ", email='" + email + '\'' +
+                ", agegroup=" + agegroup +
+                ", desiredteamradios=" + desiredteamradios +
+                ", desiredpositionchecks=" + Arrays.toString(desiredpositionchecks) +
+                ", address='" + address + '\'' +
+                ", pincode='" + pincode + '\'' +
+                ", countryselect='" + countryselect + '\'' +
+                ", stateselect='" + stateselect + '\'' +
+                ", cityselect='" + cityselect + '\'' +
+                '}';
+    }
 }

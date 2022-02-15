@@ -1,5 +1,8 @@
 var INVALID_FEEDBACK_STYLE_CLASS = "is-invalid";
 var VALID_FEEDBACK_STYLE_CLASS = "is-valid";
+var VALUE_CHANGED_CLASS = "value-changed";
+var SUBMIT_METHOD_TYPE_PATCH = "PATCH";
+var SUBMIT_METHOD_TYPE_POST = "POST";
 var PHONE_NUMBER_LENGTH = 10;
 var PINCODE_LENGTH = 6;
 
@@ -156,7 +159,6 @@ function numericAllowedOnly(){
 
         var currentVal = currentEle.value + key
 
-            // generateFeedback(currentEle, VALIDATIONS.maxLength);
         if(currentEle.name == "phonenumber" && !isValueLengthOver(currentVal, PHONE_NUMBER_LENGTH)){     
             event.preventDefault();
             return;
@@ -201,7 +203,8 @@ function addMessageEvent(selector, eventType){
 }
 
 function validationMessage(evt){
-    var currentEle = evt.srcElement;
+    var currentEle = evt.srcElement;    
+    currentEle.classList.add(VALUE_CHANGED_CLASS);
     
     if(currentEle.type == "text"){
         var textValue = currentEle.value;
@@ -221,11 +224,16 @@ function validationMessage(evt){
                 generateFeedback(currentEle, VALIDATIONS.alphabatesAllowed);
                 return;
             }
+
+            if(currentEle.name == "username"){
+                checkIfUserNameExists(evt);
+            } 
+
             currentEle.classList.remove(INVALID_FEEDBACK_STYLE_CLASS);
             return;
         }
         
-        if(currentEle.inputMode != "numeric"){
+        if(currentEle.inputMode != "numeric"){            
             currentEle.classList.remove(INVALID_FEEDBACK_STYLE_CLASS);
             return;
         }        
@@ -303,6 +311,7 @@ function validationMessage(evt){
 
         ele.forEach(function(currentEle, idx, list){
             currentEle.classList.remove(INVALID_FEEDBACK_STYLE_CLASS);
+            currentEle.classList.add(VALUE_CHANGED_CLASS);
         });
 
         return;
@@ -318,7 +327,6 @@ function validationMessage(evt){
             currentEle.classList.add(INVALID_FEEDBACK_STYLE_CLASS);
             return;
         }      
-
         currentEle.classList.remove(INVALID_FEEDBACK_STYLE_CLASS);
 
 
@@ -377,40 +385,59 @@ function validateForm(evt){
         evt.stopPropagation();
 
         RespondValdationFailure(validationOBJ.data);
+        return;
     }   
-    else{        
 
-        // var root = "{";
-        // for(var e of new FormData(evt.target).entries()){
-        //   root += `\"${e[0]}\":\"${e[1]}\", `;
-        // }
-        // root = root.substring(0, root.length - 2);
-        // root += "}";
+    var submitBtn = document.getElementById("form-submit");
 
-        var serilizedForm = formToJSON(evt.target);
-        PostFormData(serilizedForm);
+    var SubmitMethodType = submitBtn.getAttribute("data-submit-type");
+
+    if(SubmitMethodType == SUBMIT_METHOD_TYPE_PATCH){
+        var serilizedForm = formToJSON(evt.target, true);
+        PatchFormData(serilizedForm);
     }
+    else{
+        var serilizedForm = formToJSON(evt.target, false);
+        PostFormData(serilizedForm);
+    }   
+    
 }
 
-function formToJSON( elem ) {
-    var current, entries, item, key, output, value;
+function formToJSON( elem, filterByChanged ) {
+    var entries, item, key, output, value;
     output = {};
     entries = new FormData( elem ).entries();
     // Iterate over values, and assign to item.
-    while ( item = entries.next().value )
-      {
+    for (var item of entries)
+    {
+          
         // assign to variables to make the code more readable.
         key = item[0];
         value = item[1];
-        // Check if key already exist
-        if (Object.prototype.hasOwnProperty.call( output, key)) {
-          current = output[ key ];
-          if ( !Array.isArray( current ) ) {
-            // If it's not an array, convert it to an array.
-            current = output[ key ] = [ current ];
-          }
-          current.push( value ); // Add the new value to the array.
-        } else {
+        
+        if(filterByChanged){
+            var formFeild = document.getElementsByName(key);
+
+            if(!formFeild[0].classList.contains(VALUE_CHANGED_CLASS)){
+                continue;
+            }        
+        }
+
+        if(key == "desiredpositionchecks"){
+            var current;
+
+            //check if key already exists
+            if (Object.prototype.hasOwnProperty.call( output, key)) {
+                //array already exists, just add value.
+                current = output[ key ];                
+                current.push( value ); // Add the new value to the array.
+            }    
+            else{
+                current = output[key] = []                
+                current.push( value ); 
+            }
+        }
+        else {
           output[ key ] = value;
         }
       }
@@ -426,7 +453,21 @@ function PostFormData(formSubmitData){
         },
         body: formSubmitData
     }).then(res => res.json())
-    .then((res) => handlePostFormDataResponse(res));
+    .then((res) => handlePostFormDataResponse(res))
+    .error((err) => handleSubmitDataErrorResponse(err));
+}
+
+function PatchFormData(formSubmitData){
+
+    fetch('/register', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json;charset=utf-8'          
+        },
+        body: formSubmitData
+    }).then(res => res.json())
+    .then((res) => handlePatchFormDataResponse(res))
+    .error((err) => handleSubmitDataErrorResponse(err));
 }
 
 function handlePostFormDataResponse(res){
@@ -449,6 +490,36 @@ function handlePostFormDataResponse(res){
     generateNotification(submitBtn, "User registered succefully !!!.");
     
     ResetForm();
+}
+
+function handlePatchFormDataResponse(res){
+
+    //An error occured while processing request post data
+    if(res.status === false){
+        var submitBtn = document.querySelector("#form-submit");       
+        generateFeedback(submitBtn, res.message);
+    }
+
+    //Posted form data is invalid as of standard
+    if(res.success === false){
+        RespondValdationFailure(res.data);
+    }
+
+    //user updated !!!
+    
+    var submitBtn = document.querySelector("#form-submit");      
+    submitBtn.setAttribute("disabled", "disabled");   
+    generateNotification(submitBtn, "User updated succefully !!!.");
+    
+    ResetForm();
+}
+
+function handleSubmitDataErrorResponse(error){
+
+    console.log(error);
+
+    var submitBtn = document.querySelector("#form-submit");       
+    generateFeedback(submitBtn, "Unable to perform the opreation.");
 }
 
 function RespondValdationFailure(failedValidations){
@@ -477,6 +548,13 @@ function RespondValdationFailure(failedValidations){
 
 function ResetForm(){
 
+    var usernameEle = document.querySelector("#userName");
+    usernameEle.classList.remove(INVALID_FEEDBACK_STYLE_CLASS);
+    usernameEle.classList.remove(VALID_FEEDBACK_STYLE_CLASS);
+
+    var toggleELe = document.querySelector("input[name='email']");
+    toggleELe.setAttribute("disabled", "disabled"); 
+
     var stateSelectList = document.querySelector("#stateSelect");
     stateSelectList.classList.remove(INVALID_FEEDBACK_STYLE_CLASS);
     stateSelectList.classList.remove(VALID_FEEDBACK_STYLE_CLASS);
@@ -484,6 +562,9 @@ function ResetForm(){
     var citySelectList = document.querySelector("#citySelect");
     citySelectList.classList.remove(INVALID_FEEDBACK_STYLE_CLASS);
     citySelectList.classList.remove(VALID_FEEDBACK_STYLE_CLASS);
+
+    disableFetchUserDataBtn();
+    markSubmitButtonForOpreation(SUBMIT_METHOD_TYPE_POST);
 
     document.getElementById("registration-form").reset();
 }
