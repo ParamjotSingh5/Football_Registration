@@ -393,6 +393,10 @@ public class FormRegisterRequestDTO {
 
         Validations validations = new Validations();
 
+        if(this.pincode.isEmpty()){
+            return new ValidationReport("pincode", true, ValidationMessages.VALID.toString());
+        }
+
         if(!validations.isSanitizedValue(this.pincode)){
             return new ValidationReport("pincode", false, ValidationMessages.CORRUPTED_VALUE.toString());
         }
