@@ -1,9 +1,9 @@
 
 window.addEventListener('load', (event) => {
     
-    addMessageEvent('input[id="email"]', "focusout");    
-    addMessageEvent('input[type="text"]', "focusout");   
-    addMessageEvent('textarea[id="address"]', "focusout");
+    addMessageEvent('input[id="email"]', "change");    
+    addMessageEvent('input[type="text"]', "change");   
+    addMessageEvent('textarea[id="address"]', "change");
     addMessageEvent('input[type="radio"]', "change");
     addMessageEvent('input[type="checkbox"]', "change");
     addMessageEvent("select", "change");
@@ -11,9 +11,17 @@ window.addEventListener('load', (event) => {
     numericAllowedOnly();
     fecthCountriesSelectList();
 
+    bindCheckingKeyPressUserName();
+
     disableElementBySelector("#stateSelect");
     disableElementBySelector("#citySelect");
 });
+
+function bindCheckingKeyPressUserName(){
+    var userNameEle = document.querySelector("#userName");
+
+    userNameEle.addEventListener("keyup", checkIfUserNameExists);
+}
 
 /**
  * remove the options from select list found by selector if keepDefaultOptionFlag param is 
@@ -154,3 +162,34 @@ function prepareCitiesSelectList(Response){
         generateNotification(targetEle, `cities fetched for ${Response.name}`);
     }
 }
+
+function markSubmitButtonForOpreation(MethodType){
+    var submitBtn = document.getElementById("form-submit");
+
+    submitBtn.setAttribute("data-submit-type", MethodType);
+}
+
+
+
+
+
+
+
+function loadGif(){
+
+    var GifImg = document.querySelector("#securityGif");
+    
+    var curGifID = getRandomInt(1, 5);
+
+    GifImg.src = `gifs/${curGifID}.gif`;
+
+    var modalBtn = document.querySelector("#raiseSecurityModal");
+    modalBtn.click();
+}
+
+function getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
+  }
+  

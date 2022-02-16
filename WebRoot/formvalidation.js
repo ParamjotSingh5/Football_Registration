@@ -1,5 +1,8 @@
 var INVALID_FEEDBACK_STYLE_CLASS = "is-invalid";
 var VALID_FEEDBACK_STYLE_CLASS = "is-valid";
+var VALUE_CHANGED_CLASS = "value-changed";
+var SUBMIT_METHOD_TYPE_PATCH = "PATCH";
+var SUBMIT_METHOD_TYPE_POST = "POST";
 var PHONE_NUMBER_LENGTH = 10;
 var PINCODE_LENGTH = 6;
 
@@ -48,13 +51,13 @@ function isSanitizedValue(val){
         return true;
     }
 
-    var limitRegex = new RegExp(`^.{0,10000}$`,"g");
+    // var limitRegex = new RegExp(`^.{0,8000}$`,"g");
     
-    if(!limitRegex.test(val)){
-        return false;
-    }
+    // if(!limitRegex.test(val)){
+    //     return false;
+    // }
 
-    var xssRegex = new RegExp("[<>();{}=\\s]+", "g");
+    var xssRegex = new RegExp("[<>();{}=]+", "g");
 
     if(xssRegex.test(val)){
         return false;
@@ -149,7 +152,6 @@ function numericAllowedOnly(){
         }     
 
         if(!isNumericKey(key)){
-            currentEle.classList.add(INVALID_FEEDBACK_STYLE_CLASS);
             generateFeedback(currentEle, VALIDATIONS.numericAllowed);
             event.preventDefault();
             return;
@@ -157,16 +159,12 @@ function numericAllowedOnly(){
 
         var currentVal = currentEle.value + key
 
-        if(currentEle.name == "phonenumber" && !isValueLengthOver(currentVal, PHONE_NUMBER_LENGTH)){            
-            // currentEle.classList.add(INVALID_FEEDBACK_STYLE_CLASS);
-            // generateFeedback(currentEle, VALIDATIONS.maxLength);
+        if(currentEle.name == "phonenumber" && !isValueLengthOver(currentVal, PHONE_NUMBER_LENGTH)){     
             event.preventDefault();
             return;
         }
 
-        if(currentEle.name == "pincode" && !isValueLengthOver(currentVal, PINCODE_LENGTH)){      
-            // currentEle.classList.add(INVALID_FEEDBACK_STYLE_CLASS);
-            // generateFeedback(currentEle, VALIDATIONS.maxLength);      
+        if(currentEle.name == "pincode" && !isValueLengthOver(currentVal, PINCODE_LENGTH)){     
             event.preventDefault();
             return;
         }
@@ -196,12 +194,17 @@ function addMessageEvent(selector, eventType){
            else{
             submitBtn.setAttribute("disabled", "disabled");
            }
+
+           submitBtn.classList.remove(INVALID_FEEDBACK_STYLE_CLASS);
+           submitBtn.classList.remove(VALID_FEEDBACK_STYLE_CLASS);
+
         }, false)
     });
 }
 
 function validationMessage(evt){
-    var currentEle = evt.srcElement;
+    var currentEle = evt.srcElement;    
+    currentEle.classList.add(VALUE_CHANGED_CLASS);
     
     if(currentEle.type == "text"){
         var textValue = currentEle.value;
@@ -210,37 +213,38 @@ function validationMessage(evt){
             return;
         }
 
-        if(!isSanitizedValue(textValue)){
-            currentEle.classList.add(INVALID_FEEDBACK_STYLE_CLASS);            
+        if(!isSanitizedValue(textValue)){          
             generateFeedback(currentEle, VALIDATIONS.santizationFailure);
             return;
         }
 
         if(currentEle.inputMode == "text"){
 
-            if(!isAlphabatesOnly(currentEle.value)){
-                currentEle.classList.add(INVALID_FEEDBACK_STYLE_CLASS);                        
+            if(!isAlphabatesOnly(currentEle.value)){                       
                 generateFeedback(currentEle, VALIDATIONS.alphabatesAllowed);
                 return;
             }
+
+            if(currentEle.name == "username"){
+                checkIfUserNameExists(evt);
+            } 
+
             currentEle.classList.remove(INVALID_FEEDBACK_STYLE_CLASS);
             return;
         }
         
-        if(currentEle.inputMode != "numeric"){
+        if(currentEle.inputMode != "numeric"){            
             currentEle.classList.remove(INVALID_FEEDBACK_STYLE_CLASS);
             return;
         }        
 
         //below is validations for numeric text             
-        if(currentEle.name == "phonenumber" && !isValueCompleteLength(currentEle.value, PHONE_NUMBER_LENGTH)){            
-            currentEle.classList.add(INVALID_FEEDBACK_STYLE_CLASS);
+        if(currentEle.name == "phonenumber" && !isValueCompleteLength(currentEle.value, PHONE_NUMBER_LENGTH)){
             generateFeedback(currentEle, VALIDATIONS.controlledLength);
             evt.preventDefault();
             return;
         }
-        else if(currentEle.name == "pincode" && !isValueCompleteLength(currentEle.value, PINCODE_LENGTH)){      
-            currentEle.classList.add(INVALID_FEEDBACK_STYLE_CLASS);
+        else if(currentEle.name == "pincode" && !isValueCompleteLength(currentEle.value, PINCODE_LENGTH)){
             generateFeedback(currentEle, VALIDATIONS.controlledLength);      
             evt.preventDefault();
             return;
@@ -253,8 +257,7 @@ function validationMessage(evt){
     else if(currentEle.type == "textarea"){
         var textValue = currentEle.value;
 
-        if(!isSanitizedValue(textValue)){
-            currentEle.classList.add(INVALID_FEEDBACK_STYLE_CLASS);                        
+        if(!isSanitizedValue(textValue)){                       
             generateFeedback(currentEle, VALIDATIONS.santizationFailure);
             return;
         }
@@ -266,14 +269,12 @@ function validationMessage(evt){
     else if(currentEle.type == "email"){
         var textValue = currentEle.value;
 
-        if(!isSanitizedValue(textValue)){
-            currentEle.classList.add(INVALID_FEEDBACK_STYLE_CLASS);                        
+        if(!isSanitizedValue(textValue)){                      
             generateFeedback(currentEle, VALIDATIONS.santizationFailure);
             return;
         }
 
-        if(!isValidEmail(textValue)){
-            currentEle.classList.add(INVALID_FEEDBACK_STYLE_CLASS);                        
+        if(!isValidEmail(textValue)){                        
             generateFeedback(currentEle, VALIDATIONS.invalidEmail);
             return;
         }
@@ -310,6 +311,7 @@ function validationMessage(evt){
 
         ele.forEach(function(currentEle, idx, list){
             currentEle.classList.remove(INVALID_FEEDBACK_STYLE_CLASS);
+            currentEle.classList.add(VALUE_CHANGED_CLASS);
         });
 
         return;
@@ -325,7 +327,6 @@ function validationMessage(evt){
             currentEle.classList.add(INVALID_FEEDBACK_STYLE_CLASS);
             return;
         }      
-
         currentEle.classList.remove(INVALID_FEEDBACK_STYLE_CLASS);
 
 
@@ -378,16 +379,151 @@ function validateForm(evt){
 
     var validationOBJ = formFeildsDisperency();
 
+    evt.preventDefault();
+
     if (!validationOBJ.status) {
-        evt.preventDefault();
         evt.stopPropagation();
 
         RespondValdationFailure(validationOBJ.data);
+        return;
     }   
 
+    var submitBtn = document.getElementById("form-submit");
+
+    var SubmitMethodType = submitBtn.getAttribute("data-submit-type");
+
+    if(SubmitMethodType == SUBMIT_METHOD_TYPE_PATCH){
+        var serilizedForm = formToJSON(evt.target, true);
+        PatchFormData(serilizedForm);
+    }
+    else{
+        var serilizedForm = formToJSON(evt.target, false);
+        PostFormData(serilizedForm);
+    }   
+    
+}
+
+function formToJSON( elem, filterByChanged ) {
+    var entries, item, key, output, value;
+    output = {};
+    entries = new FormData( elem ).entries();
+    // Iterate over values, and assign to item.
+    for (var item of entries)
+    {
+          
+        // assign to variables to make the code more readable.
+        key = item[0];
+        value = item[1];
+        
+        if(filterByChanged){
+            var formFeild = document.getElementsByName(key);
+
+            if(!formFeild[0].classList.contains(VALUE_CHANGED_CLASS)){
+                continue;
+            }        
+        }
+
+        if(key == "desiredpositionchecks"){
+            var current;
+
+            //check if key already exists
+            if (Object.prototype.hasOwnProperty.call( output, key)) {
+                //array already exists, just add value.
+                current = output[ key ];                
+                current.push( value ); // Add the new value to the array.
+            }    
+            else{
+                current = output[key] = []                
+                current.push( value ); 
+            }
+        }
+        else {
+          output[ key ] = value;
+        }
+      }
+      return JSON.stringify( output );
+}
+
+function PostFormData(formSubmitData){
+
+    fetch('/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json;charset=utf-8'          
+        },
+        body: formSubmitData
+    }).then(res => res.json())
+    .then((res) => handlePostFormDataResponse(res))
+    .error((err) => handleSubmitDataErrorResponse(err));
+}
+
+function PatchFormData(formSubmitData){
+
+    fetch('/register', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json;charset=utf-8'          
+        },
+        body: formSubmitData
+    }).then(res => res.json())
+    .then((res) => handlePatchFormDataResponse(res))
+    .error((err) => handleSubmitDataErrorResponse(err));
+}
+
+function handlePostFormDataResponse(res){
+
+    //An error occured while processing request post data
+    if(res.status === false){
+        var submitBtn = document.querySelector("#form-submit");       
+        generateFeedback(submitBtn, res.message);
+    }
+
+    //Posted form data is invalid as of standard
+    if(res.success === false){
+        RespondValdationFailure(res.data);
+    }
+
+    //user created !!!
+    
+    var submitBtn = document.querySelector("#form-submit");      
+    submitBtn.setAttribute("disabled", "disabled");   
+    generateNotification(submitBtn, "User registered succefully !!!.");
+    
+    ResetForm();
+}
+
+function handlePatchFormDataResponse(res){
+
+    //An error occured while processing request post data
+    if(res.status === false){
+        var submitBtn = document.querySelector("#form-submit");       
+        generateFeedback(submitBtn, res.message);
+    }
+
+    //Posted form data is invalid as of standard
+    if(res.success === false){
+        RespondValdationFailure(res.data);
+    }
+
+    //user updated !!!
+    
+    var submitBtn = document.querySelector("#form-submit");      
+    submitBtn.setAttribute("disabled", "disabled");   
+    generateNotification(submitBtn, "User updated succefully !!!.");
+    
+    ResetForm();
+}
+
+function handleSubmitDataErrorResponse(error){
+
+    console.log(error);
+
+    var submitBtn = document.querySelector("#form-submit");       
+    generateFeedback(submitBtn, "Unable to perform the opreation.");
 }
 
 function RespondValdationFailure(failedValidations){
+    loadGif();
 
     failedValidations.forEach(function(eachObj){
 
@@ -408,4 +544,91 @@ function RespondValdationFailure(failedValidations){
 
         return;
     });
+}
+
+
+function ResetForm(){
+
+    var usernameEle = document.querySelector("#userName");
+    usernameEle.classList.remove(INVALID_FEEDBACK_STYLE_CLASS);
+    usernameEle.classList.remove(VALID_FEEDBACK_STYLE_CLASS);
+
+    var toggleELe = document.querySelector("input[name='email']");
+    toggleELe.setAttribute("disabled", "disabled"); 
+
+    var stateSelectList = document.querySelector("#stateSelect");
+    stateSelectList.classList.remove(INVALID_FEEDBACK_STYLE_CLASS);
+    stateSelectList.classList.remove(VALID_FEEDBACK_STYLE_CLASS);
+
+    var citySelectList = document.querySelector("#citySelect");
+    citySelectList.classList.remove(INVALID_FEEDBACK_STYLE_CLASS);
+    citySelectList.classList.remove(VALID_FEEDBACK_STYLE_CLASS);
+
+    disableFetchUserDataBtn();
+    markSubmitButtonForOpreation(SUBMIT_METHOD_TYPE_POST);
+
+    document.getElementById("registration-form").reset();
+}
+
+function checkIfUserNameExists(event){
+    var userNameEle = event.srcElement;
+
+    var providedUserName = userNameEle.value;    
+
+    disableFetchUserDataBtn();
+    userNameEle.classList.remove(INVALID_FEEDBACK_STYLE_CLASS);
+    userNameEle.classList.remove(VALID_FEEDBACK_STYLE_CLASS);
+
+    if(providedUserName == ''){        
+        return;
+    }
+
+    if(!isSanitizedValue(providedUserName)){
+        return;
+    }
+
+    if(!isAlphabatesOnly(providedUserName)){
+        return;
+    }
+
+    var requestOptions = {
+        method: 'GET'
+    };
+      
+    fetch(`/username-taken?username=${providedUserName}`, requestOptions)
+    .then(response => response.json())
+    .then((result) => {
+        handleCheckUsernameResponse(result);
+    })
+    .catch(error => console.log('error', error));
+
+}
+
+function handleCheckUsernameResponse(res){
+
+    var userNameEle = document.querySelector("#userName");
+
+    if(!res.status){
+        console.log(`An error occured while fetching username data. error: ${res.message}`)
+        return;
+    }
+    if(!res.success){        
+        return;
+    }
+
+    generateNotification(userNameEle, VALIDATIONS.usernameAlreadyExists);
+    enableFetchUserDataBtn();
+    return;
+}
+
+function disableFetchUserDataBtn(){
+    var fetchUserDataBtn = document.querySelector("#retriveUserDataBtn");
+
+    fetchUserDataBtn.disabled = true;
+}
+
+function enableFetchUserDataBtn(){
+    var fetchUserDataBtn = document.querySelector("#retriveUserDataBtn");
+
+    fetchUserDataBtn.disabled = false;
 }
