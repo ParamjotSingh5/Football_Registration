@@ -2,6 +2,7 @@ package Utilities;
 
 public enum ValidationMessages {
 
+    DROPPING_WEBAPP_START_REQUEST("Dropping Run web-app request due to of some misconfiguration."),
     PARAMETER_REQUIRED ("Field required."),
     VALUE_REQUIRED ("Value required for field."),
     CORRUPTED_VALUE ("Please provide a valid value."),

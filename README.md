@@ -57,3 +57,8 @@ $ WebRoot\registration.html
 ## 👽 Integrated Resource
 
 * We are dependent on [Countries now](https://countriesnow.space/) API for data provided.
+
+
+## Known issues
+
+* While updating user

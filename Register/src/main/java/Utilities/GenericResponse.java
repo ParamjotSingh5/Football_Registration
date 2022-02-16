@@ -4,6 +4,8 @@ public class GenericResponse {
 
     public boolean status;
     public boolean success;
+    public String message;
+    public Object data;
 
     public boolean isStatus() {
         return status;
@@ -41,8 +43,7 @@ public class GenericResponse {
         return this;
     }
 
-    public String message;
-    public Object data;
+
 
     public GenericResponse() {
         this.status = true;

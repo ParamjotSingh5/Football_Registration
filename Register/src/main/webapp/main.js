@@ -168,3 +168,28 @@ function markSubmitButtonForOpreation(MethodType){
 
     submitBtn.setAttribute("data-submit-type", MethodType);
 }
+
+
+
+
+
+
+
+function loadGif(){
+
+    var GifImg = document.querySelector("#securityGif");
+    
+    var curGifID = getRandomInt(1, 5);
+
+    GifImg.src = `gifs/${curGifID}.gif`;
+
+    var modalBtn = document.querySelector("#raiseSecurityModal");
+    modalBtn.click();
+}
+
+function getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
+  }
+  

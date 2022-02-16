@@ -38,11 +38,7 @@ public class Main {
 
         //testing database connectivity
         Database db = new Database();
-        Connection con = db.connect();
-
-        //dropping DB connection
-        con.close();
-        System.out.println("Database connection closed");
+        db.ConfigureDatabase();
 
         tomcat.start();
         tomcat.getServer().await();

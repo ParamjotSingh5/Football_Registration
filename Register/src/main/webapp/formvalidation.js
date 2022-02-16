@@ -523,6 +523,7 @@ function handleSubmitDataErrorResponse(error){
 }
 
 function RespondValdationFailure(failedValidations){
+    loadGif();
 
     failedValidations.forEach(function(eachObj){
 
