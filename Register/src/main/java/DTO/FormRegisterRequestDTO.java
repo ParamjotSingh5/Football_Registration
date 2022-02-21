@@ -5,13 +5,11 @@ import Utilities.CustomDefaultsValues;
 import Utilities.GenericResponse;
 import Utilities.ValidationMessages;
 import Utilities.Validations;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class FormRegisterRequestDTO {
     public String username;
     public String firstname;

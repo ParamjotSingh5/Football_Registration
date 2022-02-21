@@ -1,21 +1,24 @@
 package launch;
 
+import Helper.PropertiesHelper;
 import Utilities.GenericResponse;
 import Utilities.ValidationMessages;
 import com.microsoft.sqlserver.jdbc.SQLServerException;
 import org.apache.coyote.http2.Stream;
 
-import static Helper.PropertiesHelper.localProperties;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.*;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
 public class Database {
+
+    PropertiesHelper properties = new PropertiesHelper();
 
     public Connection connect(String URL, String Username, String Password) throws SQLServerException, Exception{
 
@@ -41,9 +44,9 @@ public class Database {
 
         try {
             //get the property value and print it out
-            String url = localProperties.getProperty("DATABASE_BASE_URL") + localProperties.getProperty("DATABASE");
-            String username =  localProperties.getProperty("DATABASE_USERNAME");
-            String pass = localProperties.getProperty("DATABASE_PASSWORD");
+            String url = properties.localProperties.getProperty("DATABASE_BASE_URL") + properties.localProperties.getProperty("DATABASE");
+            String username =  properties.localProperties.getProperty("DATABASE_USERNAME");
+            String pass = properties.localProperties.getProperty("DATABASE_PASSWORD");
 
             System.out.println("Database connection properties. URL: " + url + " , username: " + username +" , pass: " + pass);
 
@@ -55,41 +58,50 @@ public class Database {
         }
     }
 
-    public void ConfigureDatabase() throws Exception{
+    public void ConfigureDatabase() throws Exception {
 
-        System.out.println("Checking Database configurations...");
+        Connection dbCon = null;
+        try {
+            System.out.println("Checking Database configurations...");
 
-        GenericResponse parentRes = new GenericResponse();
+            GenericResponse parentRes = new GenericResponse();
 
-        parentRes = LoginToDatabaseServer();
+            parentRes = LoginToDatabaseServer();
 
-        if(!parentRes.status || !parentRes.success){
-            System.out.println(ValidationMessages.DROPPING_WEBAPP_START_REQUEST.toString() + " source error: " + parentRes.message);
-        }
+            if (!parentRes.status || !parentRes.success) {
+                System.out.println(ValidationMessages.DROPPING_WEBAPP_START_REQUEST.toString() + " source error: " + parentRes.message);
+            }
 
-        Connection dbCon = (Connection) parentRes.data;
+            dbCon = (Connection) parentRes.data;
 
-        parentRes = CheckIfDatabaseExists(dbCon);
+            parentRes = CheckIfDatabaseExists(dbCon);
 
-        if(!parentRes.status){
-            System.out.println(ValidationMessages.DROPPING_WEBAPP_START_REQUEST.toString() + " source error: " + parentRes.message);
-            throw new Exception(parentRes.message);
-        }
+            if (!parentRes.status) {
+                System.out.println(ValidationMessages.DROPPING_WEBAPP_START_REQUEST.toString() + " source error: " + parentRes.message);
+                throw new Exception(parentRes.message);
+            }
 
-        if(parentRes.success){
-            System.out.println("Connection to database is successful. Closing the database connection.");
-            dbCon.close();
+            if (parentRes.success) {
+                System.out.println("Connection to database is successful. Closing the database connection.");
+                dbCon.close();
+
+                return;
+            }
+
+            System.out.println("Database server does not have an instance of the application integrated database.");
+
+            parentRes = CreateInitialDatabase(dbCon);
+
+            if (!parentRes.status || !parentRes.success) {
+                System.out.println(ValidationMessages.DROPPING_WEBAPP_START_REQUEST.toString() + " source error: " + parentRes.message);
+                throw new Exception(parentRes.message);
+            }
+        } catch (Exception ex) {
+            System.out.println(Arrays.toString(ex.getStackTrace()));
 
             return;
-        }
-
-        System.out.println("Database server does not have an instance of the application integrated database.");
-
-        parentRes = CreateInitialDatabase(dbCon);
-
-        if(!parentRes.status || !parentRes.success){
-            System.out.println(ValidationMessages.DROPPING_WEBAPP_START_REQUEST.toString() + " source error: " + parentRes.message);
-            throw new Exception(parentRes.message);
+        } finally {
+            dbCon.close();
         }
     }
 
@@ -99,9 +111,9 @@ public class Database {
             System.out.println("Logging into Database server.");
 
             //get the property value and print it out
-            String url = localProperties.getProperty("DATABASE_BASE_URL");
-            String username =  localProperties.getProperty("DATABASE_USERNAME");
-            String pass = localProperties.getProperty("DATABASE_PASSWORD");
+            String url = properties.localProperties.getProperty("DATABASE_BASE_URL");
+            String username =  properties.localProperties.getProperty("DATABASE_USERNAME");
+            String pass = properties.localProperties.getProperty("DATABASE_PASSWORD");
 
             System.out.println("Database connection properties. URL: " + url + " , username: " + username +" , pass: " + pass);
 
@@ -129,7 +141,7 @@ public class Database {
             while (resultSet.next()) {
                 // Get the database name, which is at position 1
                 String databaseName = resultSet.getString(1);
-                if(Objects.equals(databaseName, localProperties.getProperty("DATABASE_NAME"))){
+                if(Objects.equals(databaseName, properties.localProperties.getProperty("DATABASE_NAME"))){
                     isDatabaseExistsFlag = true;
                 }
             }
@@ -149,9 +161,9 @@ public class Database {
     private GenericResponse ConnectToDatabase() {
         try {
             //get the property value and print it out
-            String url = localProperties.getProperty("DATABASE_BASE_URL") + localProperties.getProperty("DATABASE");
-            String username =  localProperties.getProperty("DATABASE_USERNAME");
-            String pass = localProperties.getProperty("DATABASE_PASSWORD");
+            String url = properties.localProperties.getProperty("DATABASE_BASE_URL") + properties.localProperties.getProperty("DATABASE");
+            String username =  properties.localProperties.getProperty("DATABASE_USERNAME");
+            String pass = properties.localProperties.getProperty("DATABASE_PASSWORD");
 
             System.out.println("Database connection properties. URL: " + url + " , username: " + username +" , pass: " + pass);
 
@@ -180,20 +192,10 @@ public class Database {
 
         String content = "";
 
-        try{
+        BufferedReader br = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/create_new_database_script.txt")));
 
-            FileReader fr = new FileReader("src/main/resources/create_new_database_script.txt") ;
-            BufferedReader br = new BufferedReader(fr);
-
-            content = br.lines().parallel().collect(Collectors.joining("\n"));
-            System.out.println("generated script: " + content);
-        }
-        catch (IOException ex){
-            System.out.println("An unhandled error occurred while reading 'create_new_database_script.txt' file.");
-            ex.printStackTrace();
-
-            return new GenericResponse(false, false, ex.getMessage(), ex);
-        }
+        content = br.lines().parallel().collect(Collectors.joining("\n"));
+        System.out.println("generated script: " + content);
 
         try{
 

@@ -1,0 +1,17 @@
+Domain\UserRegister.class
+servlet\UserNameQueryServlet.class
+DTO\FormRegisterRequestDTO.class
+Utilities\ValidationMessages.class
+Utilities\Validations.class
+DTO\FormRegisterResponseDTO.class
+Utilities\CustomDefaultsValues.class
+Utilities\Extensions.class
+launch\Main.class
+servlet\UserServlet.class
+DTO\ValidationReport.class
+Domain\User.class
+Domain\Registration.class
+Helper\PropertiesHelper.class
+launch\Database.class
+servlet\RegisterServlet.class
+Utilities\GenericResponse.class
