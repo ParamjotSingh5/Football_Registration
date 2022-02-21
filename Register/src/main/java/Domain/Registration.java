@@ -126,7 +126,7 @@ public class Registration {
                     status = userRes.getString("success");
                 }
 
-                if(status == "200"){
+                if(status.equals("200")){
                     parentRes.status = true;
                     parentRes.success = true;
                     parentRes.message = "User registered successfully.";

@@ -10,6 +10,8 @@ import Utilities.ValidationMessages;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
+import org.apache.commons.httpclient.HttpStatus;
+
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.annotation.WebServlet;
@@ -69,7 +71,7 @@ public class RegisterServlet extends HttpServlet{
             formRequestData = gson.fromJson(sb.toString(), FormRegisterRequestDTO.class);
         }
         catch (JsonSyntaxException ex){
-            resp.setStatus(400);
+            resp.setStatus(HttpStatus.SC_BAD_REQUEST);
 
             System.out.println("Unable to parse submitted form data into the Known Data type.");
             ex.printStackTrace();
@@ -92,9 +94,18 @@ public class RegisterServlet extends HttpServlet{
 
         postRes = formRequestData.ValidateFormData();
 
-        if(!postRes.status || !postRes.success){
+        if(!postRes.status){
+            resp.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+            String wrongJSONStr = gson.toJson(postRes);
 
-            resp.setStatus(400);
+            out.write(wrongJSONStr.getBytes());
+            out.flush();
+            out.close();
+            return;
+        }
+
+        if(!postRes.success){
+            resp.setStatus(HttpStatus.SC_BAD_REQUEST);
 
             String wrongJSONStr = gson.toJson(postRes);
 
@@ -108,7 +119,7 @@ public class RegisterServlet extends HttpServlet{
 
         if(!res.status){
 
-            resp.setStatus(400);
+            resp.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
 
             postRes.status = res.status;
             postRes.success = res.success;
@@ -124,7 +135,7 @@ public class RegisterServlet extends HttpServlet{
 
         //username already exists
         if(res.success){
-            resp.setStatus(400);
+            resp.setStatus(HttpStatus.SC_BAD_REQUEST);
 
             postRes.status = res.status;
             postRes.success = res.success;
@@ -144,7 +155,7 @@ public class RegisterServlet extends HttpServlet{
 
         if(!genericRes.status || !genericRes.success){
 
-            resp.setStatus(400);
+            resp.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
 
             postRes.status = genericRes.status;
             postRes.success = genericRes.success;
@@ -161,6 +172,8 @@ public class RegisterServlet extends HttpServlet{
         genericRes = registration.RegisterNewUser(registration.user, registration.userRegister);
 
         if(!genericRes.status || !genericRes.success){
+
+            resp.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
 
             postRes.status = genericRes.status;
             postRes.success = genericRes.success;
@@ -214,7 +227,7 @@ public class RegisterServlet extends HttpServlet{
 
         if(!postRes.status || !postRes.success){
 
-            resp.setStatus(400);
+            resp.setStatus(HttpStatus.SC_BAD_REQUEST);
 
             String wrongJSONStr = gson.toJson(postRes);
 
@@ -230,7 +243,7 @@ public class RegisterServlet extends HttpServlet{
 
         if(!genericRes.status){
 
-            resp.setStatus(400);
+            resp.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
 
             postRes.status = genericRes.status;
             postRes.success = genericRes.success;
@@ -246,7 +259,7 @@ public class RegisterServlet extends HttpServlet{
 
         //username does not exists
         if(!genericRes.success){
-            resp.setStatus(400);
+            resp.setStatus(HttpStatus.SC_BAD_REQUEST);
 
             postRes.status = genericRes.status;
             postRes.success = genericRes.success;
@@ -266,6 +279,8 @@ public class RegisterServlet extends HttpServlet{
         genericRes = registration.UpdateExistingUser(updateOBJ);
 
         if(!genericRes.status || !genericRes.success){
+
+            resp.setStatus(HttpStatus.SC_BAD_REQUEST);
 
             postRes.status = genericRes.status;
             postRes.success = genericRes.success;

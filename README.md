@@ -72,7 +72,7 @@ $ webapp.bat
 
 ## Backend
 
-* We have user Maven as dependency manager and build Tool, JAVA , Embedded Apache Tomcat server.
+* We have used Maven as dependency manager and build Tool, JAVA, Embedded Apache Tomcat server.
 * Project Division:
   * **/Domain**  contains the domain object repersenting the database tables. They also comprises the logic for database operations.
   * **/DTO** (Data transfer objects) holds the object responsible for mapping data received to or send by server.
@@ -81,3 +81,164 @@ $ webapp.bat
   * **/Utilities** holds classes for extra logic that application needs to work efficiently like `Extensions.java` contains a method `hasColumn()` as follows.
 
   ![Extension.HasColumn() method definition image](https://github.com/ParamjotSingh5/Football_Registration/blob/footballRegistration/Extension.hasColumn.png?raw=true)
+
+## API endpoints
+
+* *[Postman Collection link](https://www.getpostman.com/collections/ebd019ff546b855ca65b)*
+* Response of every request comprises these generic parameters.
+
+`"status"` will represents while processing the request, if an exception has occurred or not.
+
+`"success"` indicates the request specific result.
+
+### 1. Check if username exists "/username-taken?username=param"
+
+**Method Type : `GET`**
+
+#### Sample Responses
+
+* Provided username exists
+
+```json
+    {
+        "status": true, 
+        "success": true,
+        "message": "username already exists."
+    }
+```
+
+* Provided username does not exists
+
+```json
+    {
+        "status": true,
+        "success": false,
+        "message": "No user found with provided username"
+    }
+```
+
+* Provided a bad value such that `/user?username=Navjot or 1=1 --`
+
+```json
+    {
+        "status": false,
+        "success": false,
+        "message": "Invalid Request"
+    }
+```
+
+`"success"` indicates if provided username already exists on to the server.
+
+### 2. Fetch user data "/user?username=param"
+
+**Method Type : `GET`**
+
+#### Sample Responses
+
+* Provided username is valid
+
+```json
+    {
+        "status": true,
+        "success": true,
+        "message": "username already exists.",
+        "data": {
+            "firstname": "NavjotShiv",
+            "lastname": "singhNavjot",
+            "countrydailcodeselect": "+91",
+            "phonenumber": "9656256581",
+            "email": "singhNavjot@example.com",
+            "agegroup": 3,
+            "desiredteamradios": 1,
+            "desiredpositionchecks": [
+                1,
+                2
+            ],
+            "address": "",
+            "pincode": "987654",
+            "countryselect": "IN",
+            "stateselect": "PB",
+            "cityselect": "Nabha"
+        }
+    }
+```
+
+* Provided username does not exists
+
+```json
+    {
+        "status": true,
+        "success": false,
+        "message": "No user found with provided username"
+    }
+```
+
+`"success"` indicates if a user exists with provided username.
+
+### 3. Register new user "/register"
+
+**Method Type : `POST`**
+
+#### Sample Payload
+
+```json
+    { 
+        "username":"Yadwinder",
+        "firstname": "Yadwinder",
+        "lastname":"singh",
+        "countrydailcodeselect":"+91",
+        "phonenumber":"9876541320",
+        "email":"yadwinder@example.com",
+        "agegroup":"1",
+        "desiredteamradios":"1",
+        "desiredpositionchecks":["1","2","3"],
+        "address":"house number 245",
+        "pincode":"112234",
+        "countryselect":"IN",
+        "stateselect":"03",
+        "cityselect":"Drammen"
+    }
+```
+
+#### Sample Responses
+
+* Missing firstname field inside request payload.
+
+```json
+    {
+        "status": true,
+        "success": false,
+        "data": [
+            {
+                "feildname": "firstname",
+                "isValid": false,
+                "feedbackMesssage": "Field required."
+            }
+        ]
+    }
+```
+
+* Provided an invalid value for cityselect field.
+
+```json
+    {
+        "status": false,
+        "success": false,
+        "message": "An error occurred while registering a new user.",
+        "data": []
+    }
+```
+
+* everything seems good.
+
+```json
+    {
+        "status": true,
+        "success": true,
+        "message": "User registered successfully.",
+        "data": []
+    }
+```
+
+`"success"` indicates if a new user is registered successfully ot not.
+

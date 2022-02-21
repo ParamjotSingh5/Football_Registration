@@ -5,6 +5,8 @@ import Utilities.GenericResponse;
 import Utilities.ValidationMessages;
 import Utilities.Validations;
 import com.google.gson.Gson;
+import org.apache.commons.httpclient.HttpStatus;
+
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.annotation.WebServlet;
@@ -35,7 +37,7 @@ public class UserServlet extends HttpServlet {
 
         if(reqUserName.isEmpty() || !new Validations().isSanitizedValue(reqUserName.trim())){
 
-            resp.setStatus(400);
+            resp.setStatus(HttpStatus.SC_BAD_REQUEST);
 
             out.write(gson.toJson(new GenericResponse()
                     .setMessage(ValidationMessages.INVALID_REQUEST.toString())
@@ -53,7 +55,7 @@ public class UserServlet extends HttpServlet {
 
         if(!genericResponse.status){
 
-            resp.setStatus(400);
+            resp.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
 
             System.out.println(genericResponse.message);
 
@@ -71,6 +73,8 @@ public class UserServlet extends HttpServlet {
         //username does not exists
         if(!genericResponse.success){
 
+            resp.setStatus(HttpStatus.SC_BAD_REQUEST);
+
             System.out.println(genericResponse.message);
 
             genericResponse.message = "No user found with provided username";
@@ -82,7 +86,7 @@ public class UserServlet extends HttpServlet {
             return;
         }
 
-
+        resp.setStatus(HttpStatus.SC_OK);
 
         out.write(gson.toJson(genericResponse).getBytes());
         out.flush();
