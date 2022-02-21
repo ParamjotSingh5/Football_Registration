@@ -82,6 +82,9 @@ public class Main {
 
             tomcat.start();
 
+//            Database database = new Database();
+//            database.ConfigureDatabase();
+
             tomcat.getServer().await();
         }
         catch (Exception e){
