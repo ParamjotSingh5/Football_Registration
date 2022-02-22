@@ -58,7 +58,6 @@ $ webapp.bat
 
 * Changing selected option from select list, checks its value if other then 0.
 * Special case: checks whether if its name is `countryselect`, if ✔️ `true`, calls a method `fecthStatesSelectList(selectedOptionText)` to bind data with state list, and kind of same procedure is followed when state list is changed for city select list.
-* ⚠️ Super special case: While working with form, we may encounter a stage, where a country does not have states in it 😕 (try **Anguilla**). In that situation, we by-pass state select list selection, and directly calls `fetchCitySelectListForStates(selectedOptionText)` to bind data to city select list 🧐.
 
 ### 📌 click on checkbox/ radio
 
@@ -242,3 +241,92 @@ $ webapp.bat
 
 `"success"` indicates if a new user is registered successfully ot not.
 
+### 4. Update user "/register"
+
+**Method Type : `PATCH`**
+
+By default `HttpServlet/1.1` was not having any PATCH method that we can override to handle a HTTP Patch request. So, we did overridden the `service` method of `HttpServlet` class as follows.
+
+![Override HttpServlet service method image](https://github.com/ParamjotSingh5/Football_Registration/blob/footballRegistration/override_service.png?raw=true)
+
+*Supports request payload to include only changed fields.*
+
+#### Sample Payload
+
+```json
+    { 
+        "username":"Navjot",
+        "lastname":"singhNavjot",
+        "countrydailcodeselect":"+91",
+        "email":"singhNavjot@example.com",
+        "desiredpositionchecks": [1, 2] 
+    }
+```
+
+#### Sample Responses
+
+* Missing username field inside request payload.
+
+```json
+    {
+        "status": true,
+        "success": false,
+        "data": [
+            {
+                "feildname": "username",
+                "isValid": false,
+                "feedbackMesssage": "Field required."
+            }
+        ]
+    }
+```
+
+* Provided an invalid value for username i.e. `"username":"Navjo2a"`.
+
+```json
+    {
+        "status": true,
+        "success": false,
+        "data": [
+            {
+                "feildname": "username",
+                "isValid": false,
+                "feedbackMesssage": "Only alphabetic characters are allowed."
+            }
+        ]
+    }
+```
+
+* Provide invalid values for multiple fields i.e. `"username":"Navjo2a", "lastname":"singhNavj1ot"`
+
+```json
+    {
+        "status": true,
+        "success": false,
+        "data": [
+            {
+                "feildname": "username",
+                "isValid": false,
+                "feedbackMesssage": "Only alphabetic characters are allowed."
+            },
+            {
+                "feildname": "lastname",
+                "isValid": false,
+                "feedbackMesssage": "Only alphabetic characters are allowed."
+            }
+        ]
+    }
+```
+
+* everything seems good.
+
+```json
+    {
+        "status": true,
+        "success": true,
+        "message": "User data updated successfully",
+        "data": []
+    }
+```
+
+`"success"` indicates if a user updated successfully.
