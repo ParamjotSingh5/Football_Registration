@@ -5,7 +5,6 @@ import Utilities.GenericResponse;
 import Utilities.ValidationMessages;
 import Utilities.Validations;
 import com.google.gson.Gson;
-import org.apache.commons.httpclient.HttpStatus;
 
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
@@ -37,7 +36,7 @@ public class UserNameQueryServlet extends HttpServlet {
 
         if(reqUserName.isEmpty() || !new Validations().isSanitizedValue(reqUserName.trim())){
 
-            resp.setStatus(HttpStatus.SC_BAD_REQUEST);
+            resp.setStatus(400);
 
             out.write(gson.toJson(new GenericResponse()
                             .setMessage(ValidationMessages.INVALID_REQUEST.toString())
@@ -55,7 +54,7 @@ public class UserNameQueryServlet extends HttpServlet {
 
         if(!genericResponse.status){
 
-            resp.setStatus(HttpStatus.SC_BAD_REQUEST);
+            resp.setStatus(400);
 
             System.out.println(genericResponse.message);
 
@@ -73,7 +72,7 @@ public class UserNameQueryServlet extends HttpServlet {
         //username does not exists
         if(!genericResponse.success){
 
-            resp.setStatus(HttpStatus.SC_OK);
+            resp.setStatus(200);
 
             System.out.println(genericResponse.message);
 
@@ -86,7 +85,7 @@ public class UserNameQueryServlet extends HttpServlet {
             return;
         }
 
-        resp.setStatus(HttpStatus.SC_OK);
+        resp.setStatus(200);
         out.write(gson.toJson(genericResponse).getBytes());
         out.flush();
         out.close();
